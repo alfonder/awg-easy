@@ -1,0 +1,38 @@
+# .github/dependabot.yml
+version: 2
+updates:
+
+  # 1. Check for npm dependency updates in the root directory
+  - package-ecosystem: "npm"
+    directory: "/" # Location of package.json
+    schedule:
+      interval: "daily"
+    # Group non-major npm updates together
+    groups:
+      npm-patch-and-minor:
+        update-types:
+          - "minor"
+          - "patch"
+
+  # 2. Check for npm dependency updates in the /src directory
+  - package-ecosystem: "npm"
+    directory: "/src" # Location of src/package.json
+    schedule:
+      interval: "daily"
+    groups:
+      npm-src-patch-and-minor:
+        update-types:
+          - "minor"
+          - "patch"
+
+  # 3. Check for Docker base image updates
+  - package-ecosystem: "docker"
+    directory: "/" # Location of Dockerfile
+    schedule:
+      interval: "daily"
+
+  # 4. Check for GitHub Actions updates
+  - package-ecosystem: "github-actions"
+    directory: "/" # Checks .github/workflows
+    schedule:
+      interval: "daily"
