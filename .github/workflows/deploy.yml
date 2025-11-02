@@ -10,7 +10,6 @@ jobs:
   deploy:
     name: Build & Deploy
     runs-on: ubuntu-latest
-    if: github.repository_owner == 'gennadykataev'
     permissions:
       packages: write
       contents: read
@@ -40,4 +39,4 @@ jobs:
       with:
         push: true
         platforms: linux/amd64
-        tags: ghcr.io/gennadykataev/awg-easy:latest
+        tags: ghcr.io/${{ github.repository }}:latest
