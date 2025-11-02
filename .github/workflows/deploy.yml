@@ -14,9 +14,12 @@ jobs:
       packages: write
       contents: read
     steps:
-    - uses: actions/checkout@v5
+    - name: Checkout code
+      uses: actions/checkout@v5
       with:
         ref: master
+        # fetch-depth: 0 is required to fetch all history and tags
+        fetch-depth: 0
 
     - name: Set up QEMU
       uses: docker/setup-qemu-action@v3
@@ -31,12 +34,37 @@ jobs:
         username: ${{ github.actor }}
         password: ${{ github.token }}
 
-    - name: Set environment variables
-      run: echo RELEASE=$(cat ./src/package.json | jq -r .release | jq -r .version) >> $GITHUB_ENV
+    - name: Get package version
+      run: echo "RELEASE=$(cat ./src/package.json | jq -r .release | jq -r .version)" >> $GITHUB_ENV
+
+    - name: Get Git tag
+      id: get_git_tag
+      run: |
+        # This command gets the exact tag for the current commit
+        # If no tag exists, it outputs an empty string
+        echo "tag=$(git describe --tags --exact-match 2>/dev/null || echo '')" >> $GITHUB_OUTPUT
+
+    - name: Generate Docker tags
+      id: gen_tags
+      run: |
+        # Start with the base tags
+        TAGS="ghcr.io/${{ github.repository }}:latest,ghcr.io/${{ github.repository }}:${{ env.RELEASE }}"
+
+        # Get the Git tag from the previous step
+        GIT_TAG="${{ steps.get_git_tag.outputs.tag }}"
+
+        # Only add the Git tag if the variable is not empty
+        if [ -n "$GIT_TAG" ]; then
+          TAGS="$TAGS,ghcr.io/${{ github.repository }}:$GIT_TAG"
+        fi
+
+        # Output the final comma-separated list
+        echo "tags=$TAGS" >> $GITHUB_OUTPUT
 
     - name: Build & Publish Docker Image
       uses: docker/build-push-action@v6
       with:
         push: true
         platforms: linux/amd64
-        tags: ghcr.io/${{ github.repository }}:latest
+        # Use the dynamic list of tags from the 'gen_tags' step
+        tags: ${{ steps.gen_tags.outputs.tags }}
