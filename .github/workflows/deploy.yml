@@ -15,7 +15,7 @@ jobs:
       contents: read
     steps:
     - name: Checkout code
-      uses: actions/checkout@v5
+      uses: actions/checkout@v6
       with:
         ref: master
         # fetch-depth: 0 is required to fetch all history and tags
